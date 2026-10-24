@@ -24,7 +24,7 @@ public abstract class KeyboardHandlerMixin {
     private void ioschat$keyPress(long window, int key, int scan, int action, int mods, CallbackInfo ci) {
         if (action != PRESS && action != REPEAT) return;
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null || mc.getscreen() != null) return;
+        if (mc.player == null) return;
         if (key == KEY_F8 && action == PRESS) {
             ChatBuffer.toggle();
             status(mc, ChatBuffer.isOpen() ? "Composer ON — type; Enter sends; Esc cancels" : "Composer OFF");
@@ -52,6 +52,6 @@ public abstract class KeyboardHandlerMixin {
     }
 
     private static void status(Minecraft mc, String s) {
-        if (mc.player != null) mc.player.sendSystemMessage(Component.literal("[iOS Chat] " + s, true));
+        if (mc.player != null) mc.player.sendSystemMessage("[iOS Chat] " + s, true);
     }
 }
