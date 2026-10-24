@@ -38,69 +38,72 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.named('jar') {
-    from('LICENSE') {
-        rename { "${it}_${base.archivesName.get()}" }
+    if (file('LICENSE').exists()) {
+        from('LICENSE') {
+            rename {
+                "${it}_${base.archivesName.get()}"
+            }
+        }
     }
 }
 
+// Diagnostic task for Minecraft 26.3 keyboard methods.
+// Uses ProcessBuilder instead of Gradle's removed exec() API.
+
 tasks.register('inspectKeyboardHandler') {
     group = 'diagnostics'
-    description = 'Prints KeyboardHandler methods from Minecraft 26.3'
+    description = 'Print Minecraft 26.3 KeyboardHandler methods'
 
     dependsOn tasks.named('classes')
 
     doLast {
-        def minecraftJars = fileTree(
-            dir: "${gradle.gradleUserHomeDir}/caches",
-            includes: ['**/*.jar']
+        def jarFile = file(
+            "${gradle.gradleUserHomeDir}/caches/fabric-loom/26.3/minecraft-merged.jar"
         )
 
-        def matchingJars = []
-
-        minecraftJars.each { jarFile ->
-            try {
-                def jar = new java.util.jar.JarFile(jarFile)
-
-                try {
-                    if (jar.getEntry(
-                        'net/minecraft/client/KeyboardHandler.class'
-                    ) != null) {
-                        matchingJars.add(jarFile)
-                    }
-                } finally {
-                    jar.close()
-                }
-            } catch (Exception ignored) {
-                // Ignore unreadable or unrelated JAR files.
-            }
+        if (!jarFile.exists()) {
+            throw new GradleException(
+                "Minecraft JAR not found: ${jarFile.absolutePath}"
+            )
         }
 
-        if (matchingJars.isEmpty()) {
-            println 'KeyboardHandler.class not found in Gradle cache.'
-            return
+        println ''
+        println '=========================================='
+        println 'Minecraft 26.3 KeyboardHandler Inspection'
+        println '=========================================='
+        println "FOUND: ${jarFile.absolutePath}"
+        println ''
+
+        def javapPath = new File(
+            System.getProperty('java.home'),
+            'bin/javap'
+        ).absolutePath
+
+        def process = new ProcessBuilder(
+            javapPath,
+            '-p',
+            '-s',
+            '-classpath',
+            jarFile.absolutePath,
+            'net.minecraft.client.KeyboardHandler'
+        )
+        .redirectErrorStream(true)
+        .start()
+
+        def output = process.inputStream.getText('UTF-8')
+        println output
+
+        def exitCode = process.waitFor()
+
+        if (exitCode != 0) {
+            throw new GradleException(
+                "KeyboardHandler inspection failed (exit code: ${exitCode})"
+            )
         }
 
-        matchingJars.each { jarFile ->
-            println ''
-            println '=========================================='
-            println "FOUND: ${jarFile.absolutePath}"
-            println '=========================================='
-
-            def output = new ByteArrayOutputStream()
-
-            exec {
-                executable = 'javap'
-                args = [
-                    '-p',
-                    '-s',
-                    '-classpath',
-                    jarFile.absolutePath,
-                    'net.minecraft.client.KeyboardHandler'
-                ]
-                standardOutput = output
-            }
-
-            println output.toString('UTF-8')
-        }
+        println ''
+        println '=========================================='
+        println 'Inspection completed successfully'
+        println '=========================================='
     }
 }
