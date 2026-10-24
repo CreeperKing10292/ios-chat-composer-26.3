@@ -20,7 +20,7 @@ public abstract class KeyboardHandlerMixin {
     private static final int KEY_BACKSPACE = 259, KEY_SPACE = 32;
     private static final int MOD_SHIFT = 0x0001;
 
-    @Inject(method = "keyPress(JIIII)V", at = @At("HEAD"), cancellable = true, require = 0)
+    @Inject(method = "keyPress(JIIII)V", at = @At("HEAD"), cancellable = true, require = 1)
     private void ioschat$keyPress(long window, int key, int scan, int action, int mods, CallbackInfo ci) {
         if (action != PRESS && action != REPEAT) return;
         Minecraft mc = Minecraft.getInstance();
