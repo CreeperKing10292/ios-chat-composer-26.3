@@ -85,7 +85,7 @@ tasks.register('inspectKeyboardHandler') {
             '-s',
             '-classpath',
             jarFile.absolutePath,
-            'net.minecraft.client.KeyboardHandler'
+            'net.minecraft.client.input.KeyEvent'
         )
         .redirectErrorStream(true)
         .start()
