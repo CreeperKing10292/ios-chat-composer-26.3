@@ -19,7 +19,7 @@ public abstract class KeyboardHandlerMixin {
     private static final int REPEAT = 2;
 
     // Provisional key identifiers; verify against SDL mappings.
-    private static final int KEY_F8 = 297;
+    private static final int KEY_G = 103;
     private static final int KEY_ESCAPE = 256;
     private static final int KEY_ENTER = 257;
     private static final int KEY_BACKSPACE = 259;
@@ -52,7 +52,7 @@ public abstract class KeyboardHandlerMixin {
         int key = event.key();
         int mods = event.modifiers();
 
-        if (key == KEY_F8 && action == PRESS) {
+        if (key == KEY_G && action == PRESS) {
             ChatBuffer.toggle();
 
             status(
