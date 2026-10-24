@@ -52,6 +52,6 @@ public abstract class KeyboardHandlerMixin {
     }
 
     private static void status(Minecraft mc, String s) {
-        if (mc.player != null) mc.player.sendSystemMessage(Component.literal("[iOS Chat] " + s, true);
+        if (mc.player != null) mc.player.sendSystemMessage(Component.literal("[iOS Chat] " + s, true));
     }
 }
