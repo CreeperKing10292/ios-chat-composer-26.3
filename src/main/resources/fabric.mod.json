@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "ioschatcomposer",
+  "version": "0.1.0",
+  "name": "iOS Chat Composer (Experimental)",
+  "description": "F8 raw-key chat buffer experiment for Minecraft 26.3 on iOS.",
+  "environment": "client",
+  "mixins": ["ioschatcomposer.mixins.json"],
+  "depends": {"fabricloader": ">=0.20.1", "minecraft": "26.3", "java": ">=25"}
+}
