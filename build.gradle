@@ -3,7 +3,7 @@ plugins {
     id 'net.fabricmc.fabric-loom' version '1.18-SNAPSHOT'
 }
 
-version = '0.1.0-experimental'
+version = '1.1.0'
 group = 'dev.creeperking'
 
 base {
@@ -22,6 +22,10 @@ dependencies {
     minecraft 'com.mojang:minecraft:26.3'
 
     implementation 'net.fabricmc:fabric-loader:0.20.1'
+
+    modImplementation(
+        'net.fabricmc.fabric-api:fabric-api:0.160.5+26.3'
+    )
 }
 
 java {
@@ -44,66 +48,5 @@ tasks.named('jar') {
                 "${it}_${base.archivesName.get()}"
             }
         }
-    }
-}
-
-// Diagnostic task for Minecraft 26.3 keyboard methods.
-// Uses ProcessBuilder instead of Gradle's removed exec() API.
-
-tasks.register('inspectKeyboardHandler') {
-    group = 'diagnostics'
-    description = 'Print Minecraft 26.3 KeyboardHandler methods'
-
-    dependsOn tasks.named('classes')
-
-    doLast {
-        def jarFile = file(
-            "${gradle.gradleUserHomeDir}/caches/fabric-loom/26.3/minecraft-merged.jar"
-        )
-
-        if (!jarFile.exists()) {
-            throw new GradleException(
-                "Minecraft JAR not found: ${jarFile.absolutePath}"
-            )
-        }
-
-        println ''
-        println '=========================================='
-        println 'Minecraft 26.3 KeyboardHandler Inspection'
-        println '=========================================='
-        println "FOUND: ${jarFile.absolutePath}"
-        println ''
-
-        def javapPath = new File(
-            System.getProperty('java.home'),
-            'bin/javap'
-        ).absolutePath
-
-        def process = new ProcessBuilder(
-            javapPath,
-            '-p',
-            '-s',
-            '-classpath',
-            jarFile.absolutePath,
-            'net.minecraft.client.input.KeyEvent'
-        )
-        .redirectErrorStream(true)
-        .start()
-
-        def output = process.inputStream.getText('UTF-8')
-        println output
-
-        def exitCode = process.waitFor()
-
-        if (exitCode != 0) {
-            throw new GradleException(
-                "KeyboardHandler inspection failed (exit code: ${exitCode})"
-            )
-        }
-
-        println ''
-        println '=========================================='
-        println 'Inspection completed successfully'
-        println '=========================================='
     }
 }
