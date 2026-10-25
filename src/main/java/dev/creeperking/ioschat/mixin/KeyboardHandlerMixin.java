@@ -19,6 +19,7 @@ public abstract class KeyboardHandlerMixin {
     private static final int PRESS = 1;
     private static final int RELEASE = 0;
 
+    // SDL scancodes
     private static final int KEY_G = 10;
     private static final int KEY_ENTER = 40;
     private static final int KEY_ESCAPE = 41;
@@ -26,7 +27,11 @@ public abstract class KeyboardHandlerMixin {
     private static final int KEY_TAB = 43;
     private static final int KEY_SPACE = 44;
 
+    private static final int KEY_DOWN = 81;
+    private static final int KEY_UP = 82;
+
     private static final int MOD_SHIFT = 0x0003;
+
     private static final long DEBOUNCE_MS = 85L;
     private static final long ACTIVATION_GUARD_MS = 300L;
 
@@ -56,6 +61,7 @@ public abstract class KeyboardHandlerMixin {
         int key = event.key();
         int mods = event.modifiers();
 
+        // Ignore key releases.
         if (action == RELEASE) {
             if (ChatBuffer.isOpen()) {
                 ci.cancel();
@@ -63,6 +69,7 @@ public abstract class KeyboardHandlerMixin {
             return;
         }
 
+        // Ignore keyboard repeat events.
         if (action != PRESS) {
             if (ChatBuffer.isOpen()) {
                 ci.cancel();
@@ -72,21 +79,24 @@ public abstract class KeyboardHandlerMixin {
 
         long now = System.nanoTime() / 1_000_000L;
 
-        // G opens the composer.
+        // G activates the composer.
         if (!ChatBuffer.isOpen()) {
             if (key == KEY_G) {
                 ChatBuffer.toggle();
                 CommandCompletion.clear();
+
                 activatedAt = now;
                 lastPress[KEY_G] = now;
+
                 ci.cancel();
             }
             return;
         }
 
+        // Intercept keyboard input while composing.
         ci.cancel();
 
-        // Prevent activation G from being inserted.
+        // Prevent the activation G from being typed.
         if (
             key == KEY_G &&
             now - activatedAt < ACTIVATION_GUARD_MS
@@ -94,14 +104,17 @@ public abstract class KeyboardHandlerMixin {
             return;
         }
 
+        // Escape cancels composition.
         if (key == KEY_ESCAPE) {
             ChatBuffer.close();
             CommandCompletion.clear();
             return;
         }
 
+        // Enter sends chat or executes a command.
         if (key == KEY_ENTER) {
             String message = ChatBuffer.text();
+
             ChatBuffer.close();
             CommandCompletion.clear();
 
@@ -122,20 +135,33 @@ public abstract class KeyboardHandlerMixin {
             return;
         }
 
-        // Tab completes the current command.
+        // Navigate autocomplete suggestions.
+        if (key == KEY_UP) {
+            CommandCompletion.moveSelection(-1);
+            return;
+        }
+
+        if (key == KEY_DOWN) {
+            CommandCompletion.moveSelection(1);
+            return;
+        }
+
+        // Tab accepts the selected suggestion.
         if (key == KEY_TAB) {
             CommandCompletion.acceptOrRequest(mc);
             return;
         }
 
-        // Ignore rapid duplicate key presses.
+        // Prevent duplicate characters.
         if (key >= 0 && key < lastPress.length) {
             if (now - lastPress[key] < DEBOUNCE_MS) {
                 return;
             }
+
             lastPress[key] = now;
         }
 
+        // Backspace removes one character.
         if (key == KEY_BACKSPACE) {
             ChatBuffer.backspace();
             CommandCompletion.refresh(mc);
@@ -143,6 +169,7 @@ public abstract class KeyboardHandlerMixin {
         }
 
         boolean shift = (mods & MOD_SHIFT) != 0;
+
         Character typed = mapKey(key, shift);
 
         if (typed != null) {
@@ -155,15 +182,16 @@ public abstract class KeyboardHandlerMixin {
         int key,
         boolean shift
     ) {
-        // Letters: SDL scancodes 4-29.
+        // Letters A-Z: SDL scancodes 4-29.
         if (key >= 4 && key <= 29) {
             char letter = (char) ('a' + key - 4);
+
             return shift
                 ? Character.toUpperCase(letter)
                 : letter;
         }
 
-        // Digits 1-9 and their shifted symbols.
+        // Digits 1-9 and shifted symbols.
         if (key >= 30 && key <= 38) {
             String symbols = "!@#$%^&*(";
             int index = key - 30;
@@ -173,16 +201,17 @@ public abstract class KeyboardHandlerMixin {
                 : (char) ('1' + index);
         }
 
-        // Digit 0 / closing parenthesis.
+        // Digit 0 or closing parenthesis.
         if (key == 39) {
             return shift ? ')' : '0';
         }
 
+        // Space.
         if (key == KEY_SPACE) {
             return ' ';
         }
 
-        // US keyboard punctuation scancodes.
+        // US keyboard punctuation.
         return switch (key) {
             case 45 -> shift ? '_' : '-';
             case 46 -> shift ? '+' : '=';
