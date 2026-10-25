@@ -136,13 +136,21 @@ public abstract class KeyboardHandlerMixin {
         }
 
         // Navigate autocomplete suggestions.
-        if (key == KEY_UP) {
-            CommandCompletion.moveSelection(-1);
-            return;
-        }
-
-        if (key == KEY_DOWN) {
-            CommandCompletion.moveSelection(1);
+        // Debounce arrow keys to prevent duplicate navigation events.
+        if (key == KEY_UP || key == KEY_DOWN) {
+        
+            if (key >= 0 && key < lastPress.length) {
+                if (now - lastPress[key] < DEBOUNCE_MS) {
+                    return;
+                }
+        
+                lastPress[key] = now;
+            }
+        
+            CommandCompletion.moveSelection(
+                key == KEY_UP ? -1 : 1
+            );
+        
             return;
         }
 
