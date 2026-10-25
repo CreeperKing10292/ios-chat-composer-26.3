@@ -2,7 +2,7 @@
 {
   "schemaVersion": 1,
   "id": "ioschatcomposer",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "name": "iOS Chat Composer",
   "description": "SDL keyboard chat composer with a live HUD preview for Minecraft 26.3 on iOS.",
   "environment": "client",
