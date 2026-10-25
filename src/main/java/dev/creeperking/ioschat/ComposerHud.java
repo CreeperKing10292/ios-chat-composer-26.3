@@ -1,4 +1,3 @@
-
 package dev.creeperking.ioschat;
 
 import com.mojang.brigadier.suggestion.Suggestion;
@@ -19,8 +18,12 @@ public final class ComposerHud
     private static final int CYAN = 0xFF55FFFF;
     private static final int WHITE = 0xFFFFFFFF;
     private static final int MUTED = 0xFFAAAAAA;
+
     private static final int BACKGROUND = 0xCC101820;
     private static final int HIGHLIGHT = 0xAA245060;
+
+    // Maximum number of visible autocomplete rows.
+    private static final int MAX_VISIBLE = 8;
 
     @Override
     public void onInitializeClient() {
@@ -74,6 +77,7 @@ public final class ComposerHud
             )
         );
 
+        // Draw composer background.
         graphics.fill(
             x - 4,
             y - 6,
@@ -82,6 +86,7 @@ public final class ComposerHud
             BACKGROUND
         );
 
+        // Draw current text buffer.
         graphics.text(
             mc.font,
             "[Composer] " + text + "_",
@@ -91,11 +96,12 @@ public final class ComposerHud
             true
         );
 
+        // Draw keyboard shortcuts.
         graphics.text(
             mc.font,
             fullText.startsWith("/")
-                ? "Tab: complete  |  Enter: run  |  Esc: cancel"
-                : "Enter: send  |  Esc: cancel",
+                ? "Up/Down: select | Tab: complete | Enter: run"
+                : "Enter: send | Esc: cancel",
             x + 4,
             y + 15,
             MUTED,
@@ -123,13 +129,31 @@ public final class ComposerHud
             return;
         }
 
-        int visible = Math.min(4, suggestions.size());
+        // Display up to eight suggestions.
+        int visible = Math.min(
+            MAX_VISIBLE,
+            suggestions.size()
+        );
+
         int rowHeight = 13;
 
+        int selected = CommandCompletion.selected();
+
+        // Scroll to keep the selected item visible.
+        int scrollOffset = Math.max(
+            0,
+            Math.min(
+                selected - visible + 1,
+                suggestions.size() - visible
+            )
+        );
+
         int panelBottom = y - 9;
+
         int panelTop =
             panelBottom - visible * rowHeight - 8;
 
+        // Draw autocomplete panel background.
         graphics.fill(
             x - 4,
             panelTop,
@@ -138,12 +162,21 @@ public final class ComposerHud
             BACKGROUND
         );
 
+        // Draw the visible autocomplete suggestions.
         for (int i = 0; i < visible; i++) {
-            Suggestion suggestion = suggestions.get(i);
+            int suggestionIndex = scrollOffset + i;
 
-            int lineY = panelTop + 5 + i * rowHeight;
+            Suggestion suggestion =
+                suggestions.get(suggestionIndex);
 
-            if (i == CommandCompletion.selected()) {
+            int lineY =
+                panelTop + 5 + i * rowHeight;
+
+            boolean isSelected =
+                suggestionIndex == selected;
+
+            // Highlight the selected suggestion.
+            if (isSelected) {
                 graphics.fill(
                     x,
                     lineY - 2,
@@ -157,11 +190,15 @@ public final class ComposerHud
 
             int availableWidth = width - 18;
 
+            // Trim long suggestion labels.
             while (
                 !label.isEmpty() &&
                 mc.font.width(label) > availableWidth
             ) {
-                label = label.substring(0, label.length() - 1);
+                label = label.substring(
+                    0,
+                    label.length() - 1
+                );
             }
 
             graphics.text(
@@ -169,9 +206,7 @@ public final class ComposerHud
                 label,
                 x + 4,
                 lineY,
-                i == CommandCompletion.selected()
-                    ? CYAN
-                    : WHITE,
+                isSelected ? CYAN : WHITE,
                 false
             );
         }
