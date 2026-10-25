@@ -52,6 +52,13 @@ public abstract class KeyboardHandlerMixin {
         int key = event.key();
         int mods = event.modifiers();
 
+        System.out.println(
+        "[iOS Chat DEBUG] key=" + event.key()
+        + " keycode=" + event.keycode()
+        + " modifiers=" + event.modifiers()
+        + " action=" + action
+        );
+        
         if (key == KEY_G && action == PRESS) {
             ChatBuffer.toggle();
 
