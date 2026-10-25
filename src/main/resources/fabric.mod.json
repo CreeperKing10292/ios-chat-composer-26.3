@@ -1,10 +1,23 @@
+
 {
   "schemaVersion": 1,
   "id": "ioschatcomposer",
-  "version": "0.1.0",
-  "name": "iOS Chat Composer (Experimental)",
-  "description": "F8 raw-key chat buffer experiment for Minecraft 26.3 on iOS.",
+  "version": "1.1.0",
+  "name": "iOS Chat Composer",
+  "description": "SDL keyboard chat composer with a live HUD preview for Minecraft 26.3 on iOS.",
   "environment": "client",
-  "mixins": ["ioschatcomposer.mixins.json"],
-  "depends": {"fabricloader": ">=0.20.1", "minecraft": "26.3", "java": ">=25"}
+  "entrypoints": {
+    "client": [
+      "dev.creeperking.ioschat.ComposerHud"
+    ]
+  },
+  "mixins": [
+    "ioschatcomposer.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.20.1",
+    "minecraft": "26.3",
+    "java": ">=25",
+    "fabric-rendering-v1": "*"
+  }
 }
