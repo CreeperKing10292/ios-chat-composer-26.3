@@ -1,4 +1,3 @@
-
 package dev.creeperking.ioschat;
 
 import com.mojang.brigadier.CommandDispatcher;
@@ -15,8 +14,10 @@ import java.util.concurrent.CompletableFuture;
 public final class CommandCompletion {
 
     private static List<Suggestion> suggestions = List.of();
+
     private static int selected = 0;
     private static int generation = 0;
+
     private static String queriedText = "";
     private static boolean loading = false;
 
@@ -41,6 +42,18 @@ public final class CommandCompletion {
 
     public static boolean loading() {
         return loading;
+    }
+
+    // Navigate suggestions, wrapping at either end.
+    public static void moveSelection(int direction) {
+        if (suggestions.isEmpty()) {
+            return;
+        }
+
+        selected = Math.floorMod(
+            selected + direction,
+            suggestions.size()
+        );
     }
 
     public static void refresh(Minecraft mc) {
@@ -129,17 +142,17 @@ public final class CommandCompletion {
             return;
         }
 
+        // Accept the currently selected suggestion.
         Suggestion suggestion = suggestions.get(selected);
 
         String command = text.substring(1);
 
-        // Brigadier ranges refer to the command
-        // without the initial slash.
+        // Replace the relevant part of the command.
         String completed = suggestion.apply(command);
 
         replaceBuffer("/" + completed);
 
-        // Refresh suggestions for the new command.
+        // Request suggestions for the updated command.
         refresh(mc);
     }
 
